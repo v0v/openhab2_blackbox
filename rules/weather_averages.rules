@@ -486,7 +486,7 @@ var MODE_HEATING = 1
             vbTempSportZalFiltered.postUpdate(MS_SportZal.state)  
         }
     }
-    if (UpdateCounterMSSPortZal > 55) {
+    if (UpdateCounterMSSPortZal > 666) {
        sendNotification("vbhome@mail.ru", "vbTempSportZalFiltered IS NOT UPDATING!!!")
     }
 
