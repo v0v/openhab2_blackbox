@@ -39,6 +39,7 @@ if (MySen2413HeaterIITemp_Temperature.state instanceof Number) {
 }
 
 if (TemperatureSensor_3V_Temperature.state instanceof Number) {
+    if (vbTempTeplizaFiltered.state==NULL) {vbTempTeplizaFiltered.postUpdate(TemperatureSensor_3V_Temperature.state)}
     logInfo("tepliza.rules", "TemperatureSensor_3V_Temperature = " + TemperatureSensor_3V_Temperature.state)
     var vbTeplizaRoomTemp = (TemperatureSensor_3V_Temperature.state as Number).floatValue
     logInfo("tepliza.rules", "vbTeplizaRoomTemp = " + vbTeplizaRoomTemp)

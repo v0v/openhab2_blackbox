@@ -462,6 +462,32 @@ var MODE_HEATING = 1
             vbSportZalUstavka = vbSportZalUstavka + 5
             logInfo("weather_averages.rules", " добавлем 5 градусов к vbSportZalUstavka")
         }
+    } else {
+        sendNotification("vbhome@mail.ru", "MS_SportZal.state IS NOT NUMBER!!!")
+    }
+
+    if (vbUpdateCounterMSSPortZal.state==NULL) {vbUpdateCounterMSSPortZal.postUpdate(0)}
+    var UpdateCounterMSSPortZal = (vbUpdateCounterMSSPortZal.state as Number).floatValue
+    if (vbTempSportZalFiltered.state==NULL) {vbTempSportZalFiltered.postUpdate(MS_SportZal.state)}
+    var TempSportZalPrev = (vbTempSportZalFiltered.state as Number).floatValue
+    if (MS_SportZal.state instanceof Number) {
+        var TempSportZal = (MS_SportZal.state as Number).floatValue
+        if (TempSportZal == TempSportZalPrev) {
+            UpdateCounterMSSPortZal = UpdateCounterMSSPortZal+1
+            vbUpdateCounterMSSPortZal.postUpdate(UpdateCounterMSSPortZal)
+            logInfo("weather_averages.rules", "updating UpdateCounterMSSPortZal = " + UpdateCounterMSSPortZal)
+        } else {
+            vbUpdateCounterMSSPortZal.postUpdate(0)
+            logInfo("weather_averages.rules", "updating UpdateCounterMSSPortZal = 0")
+        }
+        logInfo("weather_averages.rules", "TempSportZalPrev = " + TempSportZalPrev)
+        if ((TempSportZal > -77) && (TempSportZal < 77) && (Math::abs(TempSportZal - TempSportZalPrev) < 10)){
+            logInfo("weather_averages.rules", "updating vbTempSportZalFiltered = " + MS_SportZal.state)
+            vbTempSportZalFiltered.postUpdate(MS_SportZal.state)  
+        }
+    }
+    if (UpdateCounterMSSPortZal > 55) {
+       sendNotification("vbhome@mail.ru", "vbTempSportZalFiltered IS NOT UPDATING!!!")
     }
 
     var vbSportZalSettingPersistent = vbSportZalUstavka
