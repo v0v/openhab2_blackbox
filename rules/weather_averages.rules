@@ -1,0 +1,582 @@
+rule "Weather averages"
+
+when 
+	//Time cron "0 0/5 * * * ?"
+	Time cron "0 * * * * ?" //for debug
+then
+    val vbAveragePeriod = 50 as Number
+    val vbMultiplier = 2 / (vbAveragePeriod + 1) as Number
+    val vbAveragePeriod_BIG = 200 as Number
+    val vbMultiplier_BIG = 2 / (vbAveragePeriod_BIG + 1) as Number
+
+    //val vbBalconUstavka = 5.50|"°C"
+    val vbBalconUstavka = 1.00  
+    val vbBathRoomUstavka = 25.50
+    val vbHallUstavka = 22.50
+    val vbKit4enUstavka = 21.00
+    val vbSalonUstavka = 24.00
+    val vbSportZalUstavka = 23.30
+    val vb4erdakUstavka = 25.30
+    //val vbMuslinUstavka = 23.00|"°C"
+    val vbMuslinUstavka = 23.00
+
+    if (true) {
+    }
+
+    var int vbSwitchZircNasos = 0
+
+    logInfo("weather_averages.rules", "================================ " + now)
+
+    // ======================== WEATHER =========================
+    logInfo("weather_averages.rules", " ======================== WEATHER =========================")
+    //var Temp = Kasimovo_Temp.state as Number
+    //var Temp = (DarkSkyKasimovo_Current_OutdoorTemperature.state as Number).floatValue
+    var Temp = (OpenWeatherMap_Current_OutdoorTemperature.state as Number).floatValue
+    logInfo("weather_averages.rules", "Temp = " + Temp)
+    //logInfo("weather_averages.rules", "Temp1 = " + Temp1)
+    //Temp = Temp1
+    //var Temp = Kasimovo_OWM_Temp.state as Number
+    //logInfo("weather_averages.rules", "Kasimovo_Temp.state = " + Kasimovo_Temp.state)
+    
+    //logInfo("weather_averages.rules", "vbItemWeatherEMA = " + vbItemWeatherEMA)
+    if (vbItemWeatherEMA.state==NULL) {vbItemWeatherEMA.postUpdate(Temp)}
+    if (vbItemWeatherEMA_BIG.state==NULL) {vbItemWeatherEMA_BIG.postUpdate(Temp)}
+    //logInfo("weather_averages.rules", "vbItemWeatherEMA = " + vbItemWeatherEMA)
+    //logInfo("weather_averages.rules", "vbItemWeatherEMA_BIG = " + vbItemWeatherEMA_BIG)
+    //logInfo("weather_averages.rules", "vbMultiplier = " + vbMultiplier)
+
+    var Number vbPogodaKasimovoEMA = (vbItemWeatherEMA.state as Number).floatValue
+    var Number vbPogodaKasimovoEMA_BIG = (vbItemWeatherEMA_BIG.state as Number).floatValue
+    
+    logInfo("weather_averages.rules", "vbPogodaKasimovoEMA = " + vbPogodaKasimovoEMA)
+    logInfo("weather_averages.rules", "(Temp - vbPogodaKasimovoEMA) * vbMultiplier = " + (Temp - vbPogodaKasimovoEMA) * vbMultiplier)
+    vbPogodaKasimovoEMA = (Temp - vbPogodaKasimovoEMA) * vbMultiplier + vbPogodaKasimovoEMA
+    vbPogodaKasimovoEMA = Math::round(vbPogodaKasimovoEMA.floatValue*1000.0)/1000.0
+    vbItemWeatherEMA.postUpdate(vbPogodaKasimovoEMA)
+    
+    vbPogodaKasimovoEMA_BIG = (Temp - vbPogodaKasimovoEMA_BIG) * vbMultiplier_BIG + vbPogodaKasimovoEMA_BIG
+    vbPogodaKasimovoEMA_BIG = Math::round(vbPogodaKasimovoEMA_BIG.floatValue*1000.0)/1000.0
+    vbItemWeatherEMA_BIG.postUpdate(vbPogodaKasimovoEMA_BIG)
+    var vbPogodaKasimovoEMA_Delta  = vbPogodaKasimovoEMA_BIG - vbPogodaKasimovoEMA as Number
+    logInfo("weather_averages.rules", "vbPogodaKasimovoEMA = " + vbPogodaKasimovoEMA)
+    //logInfo("weather_averages.rules", "vbItemWeatherEMA = " + vbItemWeatherEMA)
+    //logInfo("weather_averages.rules", "vbItemWeatherEMA_BIG = " + vbItemWeatherEMA_BIG)
+    logInfo("weather_averages.rules", String::format("vbPogodaKasimovoEMA_Delta = %.2f", vbPogodaKasimovoEMA_Delta))
+
+    if (((Temp > 19) && (vbPogodaKasimovoEMA_Delta < 0)) || (Temp > 21)) {
+        vbPogodaKasimovoEMA_Delta = 0
+        logInfo("weather_averages.rules", String::format("ОБНУЛЯЕМ vbPogodaKasimovoEMA_Delta = %.2f", vbPogodaKasimovoEMA_Delta))
+        vbBathRoomUstavka = 22.00
+        vbHallUstavka = 18.00
+        vbKit4enUstavka = 18.00
+        vbSalonUstavka = 20.00
+        vbSportZalUstavka = 20.00
+        vb4erdakUstavka = 20.00
+    }
+
+    //var sWindGust = (DarkSkyKasimovo_Current_WindSpeed.state as Number).floatValue
+    //var sWindDirection = (DarkSkyKasimovo_Current_WindDirection.state as Number).floatValue
+    var vbWindSportZalTempShift = 0
+    logInfo("weather_averages.rules", "OpenWeatherMap_Current_WindSpeed.state = " + OpenWeatherMap_Current_WindSpeed.state)
+    logInfo("weather_averages.rules", "OpenWeatherMap_Current_WindDirection.state = " + OpenWeatherMap_Current_WindDirection.state)
+    var sWindGust = (OpenWeatherMap_Current_WindSpeed.state as Number).floatValue
+    var sWindDirection = (OpenWeatherMap_Current_WindDirection.state as Number).floatValue
+    logInfo("weather_averages.rules", "sWindGust = " + sWindGust)
+    logInfo("weather_averages.rules", "sWindDirection = " + sWindDirection)
+    //if ((sWindGust > 7) && ((sWindDirection.contains("N")) || (sWindDirection.contains("E"))))  {
+    if ((sWindGust > 7) && ((sWindDirection>270) || (sWindDirection<120)))  {
+        vbWindSportZalTempShift = 1
+    }
+    logInfo("weather_averages.rules", "vbWindSportZalTempShift = " + vbWindSportZalTempShift)
+
+
+
+    // ======================== TIME ============================
+    logInfo("weather_averages.rules", " ======================== TIME ============================")
+    var int vbTimeOfDayTempShift = 0
+    var int vbTimeOfDaySavingsShift = 0
+    if ((now.getHourOfDay > 7) && (now.getHourOfDay < 20)) {
+		vbTimeOfDaySavingsShift = -1 //ВЫКЛЮЧАЕМ ЗИМОЙ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ==============================
+    }   
+
+    logInfo("System Test 1", "System Test 1: now is before sunrise " + now + " --- sunrise: " + AstroLocalSun_Rise_StartTime.state)
+    logInfo("System Test 1", "System Test 1: now is before sunset " + now + " --- sunrise: " + AstroLocalSun_Set_StartTime.state)
+    if(
+        (now.plusMinutes(200).isAfter((AstroLocalSun_Rise_StartTime.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)) &&
+        (now.minusMinutes(400).isBefore((AstroLocalSun_Rise_StartTime.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)) 
+            ) {
+        vbTimeOfDayTempShift = -1
+    } 
+    if(
+        (now.plusMinutes(240).isAfter((AstroLocalSun_Set_StartTime.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)) &&
+        (now.minusMinutes(60).isBefore((AstroLocalSun_Set_StartTime.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)) 
+            ) {
+        vbTimeOfDayTempShift = 1
+    } 
+    logInfo("weather_averages.rules", "vbTimeOfDayTempShift = " + vbTimeOfDayTempShift)
+    logInfo("weather_averages.rules", "vbTimeOfDaySavingsShift = " + vbTimeOfDaySavingsShift)
+
+    logInfo("weather_averages.rules", "CHerdakBulb_I_Dimmer.state = " + CHerdakBulb_I_Dimmer.state)
+
+    var Number vb_OpenWeatherMap_Current_Cloudiness = 0
+    if (OpenWeatherMap_Current_Cloudiness.state instanceof Number) {
+        logInfo("weather_averages.rules", "OpenWeatherMap_Current_Cloudiness.state = " + OpenWeatherMap_Current_Cloudiness.state)
+        vb_OpenWeatherMap_Current_Cloudiness = (OpenWeatherMap_Current_Cloudiness.state as Number).floatValue
+    }
+    vb_OpenWeatherMap_Current_Cloudiness = vb_OpenWeatherMap_Current_Cloudiness / 2
+    logInfo("weather_averages.rules", "vb_OpenWeatherMap_Current_Cloudiness = " + vb_OpenWeatherMap_Current_Cloudiness)
+    if(
+        (now.plusMinutes(0 + vb_OpenWeatherMap_Current_Cloudiness.intValue).isAfter((AstroLocalSun_Set_StartTime.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)) ||
+        (now.minusMinutes(1).isBefore((AstroLocalSun_Rise_StartTime.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)) 
+            ) {
+        if (CHerdakBulb_I_Dimmer.state == 0) {
+            CHerdakBulb_I_Dimmer.sendCommand(100)
+            logInfo("weather_averages.rules", "switching CHerdakBulb_I_Dimmer ON ")
+        }
+    } else {
+        if (CHerdakBulb_I_Dimmer.state > 50) {
+            CHerdakBulb_I_Dimmer.sendCommand(0)
+            logInfo("weather_averages.rules", "switching CHerdakBulb_I_Dimmer OFF ")
+        }
+    } 
+
+    //erker nisha
+    if(
+        (now.minusMinutes(35-vb_OpenWeatherMap_Current_Cloudiness.intValue).isAfter((AstroLocalSun_Set_StartTime.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)) &&
+        (now.minusMinutes(50-vb_OpenWeatherMap_Current_Cloudiness.intValue).isBefore((AstroLocalSun_Set_StartTime.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)) 
+            ) {
+        //if (MySen258NishaLightRelayI_Status.state == OFF) {
+            MySen258NishaLightRelayI_Status.sendCommand(ON)
+            logInfo("weather_averages.rules", "switching MySen258NishaLightRelayI_Status ON ")
+        //}
+    } else if ((now.plusMinutes(15).isAfter(now.plusHours(23).withTimeAtStartOfDay))&&(!(now.plusMinutes(1).isAfter(now.plusHours(23).withTimeAtStartOfDay)))) {
+        //if (MySen258NishaLightRelayI_Status.state == ON) {
+            MySen258NishaLightRelayI_Status.sendCommand(OFF)
+            logInfo("weather_averages.rules", "switching MySen258NishaLightRelayI_Status OFF ")
+        //}
+    } else {
+            logInfo("weather_averages.rules", "SportZalNisha_Dimmer - doing NOTHING ")
+    }
+
+    //sportzal nisha
+    if(
+        //(now.plusMinutes(3+vb_OpenWeatherMap_Current_Cloudiness.intValue).isAfter((AstroLocalSun_Set_StartTime.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)) &&
+        //(now.minusMinutes(3+vb_OpenWeatherMap_Current_Cloudiness.intValue).isBefore((AstroLocalSun_Set_StartTime.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)) 
+        (now.minusMinutes(10-vb_OpenWeatherMap_Current_Cloudiness.intValue).isAfter((AstroLocalSun_Set_StartTime.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)) &&
+        (now.minusMinutes(20-vb_OpenWeatherMap_Current_Cloudiness.intValue).isBefore((AstroLocalSun_Set_StartTime.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)) 
+            ) {
+        if (SportZalNisha_Dimmer.state == 0) {
+            SportZalNisha_Dimmer.sendCommand(80)
+            logInfo("weather_averages.rules", "switching SportZalNisha_Dimmer ON ")
+        }
+    } else if (
+        (now.plusMinutes(10+vb_OpenWeatherMap_Current_Cloudiness.intValue).isAfter((AstroLocalSun_Rise_StartTime.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)) &&
+        (now.minusMinutes(10+vb_OpenWeatherMap_Current_Cloudiness.intValue).isBefore((AstroLocalSun_Rise_StartTime.state as DateTimeType).zonedDateTime.toInstant.toEpochMilli)) 
+            ) {
+        if (SportZalNisha_Dimmer.state > 0) {
+            SportZalNisha_Dimmer.sendCommand(0)
+            logInfo("weather_averages.rules", "switching SportZalNisha_Dimmer OFF ")
+        }
+    } else {
+            logInfo("weather_averages.rules", "SportZalNisha_Dimmer - doing NOTHING ")
+    }
+
+
+    // ======================== Balcon ========================
+    logInfo("weather_averages.rules", " ======================== Balcon ==========================")
+
+    var vbBalconSettingPersistent = vbBalconUstavka
+    if (HeatitBalcon_SetpointHeating.state instanceof Number) {
+        //logInfo("weather_averages.rules", "HeatitBalcon_SetpointHeating.state = " + HeatitBalcon_SetpointHeating.state)
+        var vbBalconCOM = (HeatitBalcon_SetpointHeating.state as Number).floatValue
+        logInfo("weather_averages.rules", "vbBalconCOM = " + vbBalconCOM)
+        logInfo("weather_averages.rules", "vbBalconUstavka = " + vbBalconUstavka)
+
+        var vbBalconSetting = vbBalconUstavka
+
+        //logInfo("weather_averages.rules", "vbBalconSetting = " + vbBalconSetting)
+        vbBalconSetting = Math::floor(vbBalconSetting.floatValue*2.0+0.5)/2.0
+        vbBalconSettingPersistent = vbBalconSetting
+        //logInfo("weather_averages.rules", "vbBalconSetting = " + vbBalconSetting)
+        
+        if (vbBalconSetting < 5) {
+            vbBalconSetting = 5
+        }
+        if (vbBalconSetting > vbBalconCOM) {
+            //logInfo("weather_averages.rules", "increasing vbBalconCOM ")
+            HeatitBalcon_SetpointHeating.sendCommand(vbBalconSetting)
+        } else if (vbBalconSetting < vbBalconCOM) {
+            HeatitBalcon_SetpointHeating.sendCommand(vbBalconSetting)
+            //logInfo("weather_averages.rules", "decreasing vbBalconCOM")
+        } else {
+            //logInfo("weather_averages.rules", "vbBalconCOM is OK, doing nothing ")
+        }
+    } else {
+        logInfo("weather_averages.rules", "!!!!!!!!!!!!!! vbBalconCOM NOT DEFINED !!!!!!!!!!!!!!")
+    }
+
+/* 
+var MODE_ECO =11
+var MODE_HEATING = 1
+*/
+
+    if (HeatitBalcon_SensorTemperature.state instanceof Number) {
+        var vbBalconTemp = (HeatitBalcon_SensorTemperature.state as Number).floatValue
+        logInfo("weather_averages.rules", "vbBalconTemp = " + vbBalconTemp)
+        logInfo("weather_averages.rules", "vbBalconSettingPersistent = " + vbBalconSettingPersistent)
+
+        if (HeatitBalcon_ThermostatMode.state  === NULL) {
+            logInfo("weather_averages.rules", "!!!!!!!!!!!!!! HeatitBalcon_ThermostatMode.state NOT DEFINED !!!!!!!!!!!!!!")
+            HeatitBalcon_ThermostatMode.sendCommand(ON)
+        } else {
+            logInfo("weather_averages.rules", "HeatitBalcon_ThermostatMode.state = " + HeatitBalcon_ThermostatMode.state)
+            if ((vbBalconTemp > vbBalconSettingPersistent) && (HeatitBalcon_ThermostatMode.state == 1)) {
+                logInfo("weather_averages.rules", "switching HeatitBalcon_ThermostatMode OFF ")
+                HeatitBalcon_ThermostatMode.sendCommand(0)
+                vbHeatitBalcon_ThermostatState.postUpdate(0)
+            } else if ((vbBalconTemp > (vbBalconSettingPersistent + 5)) && (vbBalconSettingPersistent > 5) && (HeatitBalcon_ThermostatMode.state == 0)) {
+                HeatitBalcon_ThermostatMode.sendCommand(0)
+                logInfo("weather_averages.rules", "ЧТО ТО ПОШЛО НЕ ТАК!!! ПРИНУДИТЕЛЬНО ВЫКЛЮЧАЕМ HeatitBalcon_ThermostatMode")
+                vbHeatitBalcon_ThermostatState.postUpdate(0)
+            } else if ((vbBalconTemp > vbBalconSettingPersistent) && (HeatitBalcon_ThermostatMode.state == 0)) {
+                logInfo("weather_averages.rules", "HeatitBalcon_ThermostatMode is OFF, doing nothing")
+                vbHeatitBalcon_ThermostatState.postUpdate(0)
+            } else if ((vbBalconTemp <= (vbBalconSettingPersistent - 5)) && (HeatitBalcon_ThermostatMode.state == 1)) {
+                HeatitBalcon_ThermostatMode.sendCommand(1)
+                logInfo("weather_averages.rules", "ЧТО ТО ПОШЛО НЕ ТАК!!! ПРИНУДИТЕЛЬНО ВКЛЮЧАЕМ HeatitBalcon_ThermostatMode") 
+                vbHeatitBalcon_ThermostatState.postUpdate(1)
+                vbSwitchZircNasos = 1
+            } else if ((vbBalconTemp <= vbBalconSettingPersistent) && (HeatitBalcon_ThermostatMode.state == 1)) {
+                logInfo("weather_averages.rules", "HeatitBalcon_ThermostatMode is ON, doing nothing") 
+                vbHeatitBalcon_ThermostatState.postUpdate(1)
+                vbSwitchZircNasos = 1
+            } else if ((vbBalconTemp <= vbBalconSettingPersistent) && (HeatitBalcon_ThermostatMode.state == 0)) {
+                logInfo("weather_averages.rules", "switching HeatitBalcon_ThermostatMode ON ")
+                HeatitBalcon_ThermostatMode.sendCommand(1)
+                vbHeatitBalcon_ThermostatState.postUpdate(1)
+                vbSwitchZircNasos = 1
+            }
+        }
+    } else {
+        logInfo("weather_averages.rules", "!!!!!!!!!!!!!! HeatitBalcon_SensorTemperature NOT DEFINED !!!!!!!!!!!!!!")
+        vbSwitchZircNasos = 1
+    }
+
+        
+    // ======================== 4erdak ========================
+    if (vbCherdakNasosToggleCounter.state==NULL) {vbCherdakNasosToggleCounter.postUpdate(0)}
+    var Number vb_var_vbCherdakNasosToggleCounter = (vbCherdakNasosToggleCounter.state as Number).floatValue 
+    logInfo("weather_averages.rules", "vbCherdakNasosToggleCounter = " + vb_var_vbCherdakNasosToggleCounter)
+    logInfo("weather_averages.rules", " ======================== 4erdak ==========================")
+    if (MS_4erdak.state instanceof Number) {
+        //logInfo("weather_averages.rules", "MS_4erdak.state = " + MS_4erdak.state)
+        var vb4erdakTemp = (MS_4erdak.state as Number).floatValue
+        logInfo("weather_averages.rules", "vb4erdakTemp = " + vb4erdakTemp)
+        logInfo("weather_averages.rules", "PAN06_Switch1.state = " + PAN06_Switch1.state)
+        
+        if (vbMS_4erdakEMA_BIG.state==NULL) {vbMS_4erdakEMA_BIG.postUpdate(vb4erdakTemp)}
+        var Number vb_var_MS4erdakEMA_BIG = (vbMS_4erdakEMA_BIG.state as Number).floatValue
+        vb_var_MS4erdakEMA_BIG = (vb4erdakTemp - vb_var_MS4erdakEMA_BIG) * vbMultiplier_BIG + vb_var_MS4erdakEMA_BIG
+        vb_var_MS4erdakEMA_BIG = Math::round(vb_var_MS4erdakEMA_BIG.floatValue*1000.0)/1000.0
+        vbMS_4erdakEMA_BIG.postUpdate(vb_var_MS4erdakEMA_BIG)
+        var vbMS_4erdakEMA_Delta  = vb_var_MS4erdakEMA_BIG - vb4erdakTemp as Number
+        
+        
+        var vb4erdakSetting = vb4erdakUstavka + 0.5 * vbPogodaKasimovoEMA_Delta + 0.5 * vbMS_4erdakEMA_Delta
+        vb4erdakSetting = Math::round(vb4erdakSetting.floatValue*1000.0)/1000.0
+        logInfo("weather_averages.rules", "vb4erdakUstavka = " + vb4erdakUstavka)
+        logInfo("weather_averages.rules", "vbMS_4erdakEMA_Delta = " + vbMS_4erdakEMA_Delta)
+        logInfo("weather_averages.rules", "vb4erdakSetting = " + vb4erdakSetting)
+        if ((vb_var_vbCherdakNasosToggleCounter >= 30) && (PAN06_Switch1.state == ON)) {
+            logInfo("weather_averages.rules", "switching 4erdak heating OFF because of big counter")
+            PAN06_Switch1.sendCommand(OFF)
+            vbRelay_1.postUpdate(0)
+            vbCherdakNasosToggleCounter.postUpdate(0)
+        } else if ((vb_var_vbCherdakNasosToggleCounter >= 30) && (PAN06_Switch1.state == OFF)) {
+            logInfo("weather_averages.rules", "switching 4erdak heating ON because of big counter")
+            PAN06_Switch1.sendCommand(ON)
+            vbRelay_1.postUpdate(1)
+            vbCherdakNasosToggleCounter.postUpdate(0)
+        } else if ((vb4erdakTemp >= vb4erdakSetting) && (PAN06_Switch1.state == ON)) {
+            logInfo("weather_averages.rules", "switching 4erdak heating OFF ")
+            PAN06_Switch1.sendCommand(OFF)
+            vbRelay_1.postUpdate(0)
+            vbCherdakNasosToggleCounter.postUpdate(0)
+        } else if ((vb4erdakTemp >= vb4erdakSetting) && (PAN06_Switch1.state == OFF)) {
+            logInfo("weather_averages.rules", "4erdak heating is OFF, doing nothing")
+            vbRelay_1.postUpdate(0)
+            vbCherdakNasosToggleCounter.postUpdate(vb_var_vbCherdakNasosToggleCounter+1)
+        } else if ((vb4erdakTemp < vb4erdakSetting) && (PAN06_Switch1.state == ON)) {
+            logInfo("weather_averages.rules", "s4erdak heating is ON, doing nothing") 
+            vbRelay_1.postUpdate(1)
+            vbCherdakNasosToggleCounter.postUpdate(vb_var_vbCherdakNasosToggleCounter+1)
+        } else if ((vb4erdakTemp < vb4erdakSetting) && (PAN06_Switch1.state == OFF)) {
+            logInfo("weather_averages.rules", "switching 4erdak heating ON ")
+            PAN06_Switch1.sendCommand(ON)
+            vbRelay_1.postUpdate(1)
+            vbCherdakNasosToggleCounter.postUpdate(0)
+        }
+    }
+
+
+    // ======================== SALON ===========================
+    logInfo("weather_averages.rules", " ======================== SALON ===========================")
+    var vbMS_SalonTemp = vbBathRoomUstavka
+    var vbSalonSettingPersistent = vbSalonUstavka
+    if (MS_Salon.state instanceof Number) {
+        vbMS_SalonTemp = (MS_Salon.state as Number).floatValue
+    } else {
+        logInfo("weather_averages.rules", "!!!!!!!!!!!!!! MS_Salon.state NOT DEFINED !!!!!!!!!!!!!!")
+    }
+    logInfo("weather_averages.rules", "vbMS_SalonTemp = " + vbMS_SalonTemp)
+
+    if (HeatitSalon_SetpointHeating.state instanceof Number) {
+        //logInfo("weather_averages.rules", "HeatitSalon_SetpointHeating.state = " + HeatitSalon_SetpointHeating.state)
+        var vbSalonCOM = (HeatitSalon_SetpointHeating.state as Number).floatValue
+        logInfo("weather_averages.rules", "vbSalonCOM = " + vbSalonCOM)
+        logInfo("weather_averages.rules", "vbSalonUstavka = " + vbSalonUstavka)
+
+        var vbSalonSetting = vbSalonUstavka + (vbSalonUstavka - vbMS_SalonTemp)/2 + vbPogodaKasimovoEMA_Delta + vbTimeOfDayTempShift + vbTimeOfDaySavingsShift
+        logInfo("weather_averages.rules", "vbSalonSetting = " + vbSalonSetting)
+        vbSalonSetting = Math::floor(vbSalonSetting.floatValue*2.0+0.5)/2.0
+        vbSalonSettingPersistent = vbSalonSetting
+        logInfo("weather_averages.rules", "vbSalonSetting = " + vbSalonSetting)
+
+        if (vbSalonSetting > vbSalonCOM) {
+            logInfo("weather_averages.rules", "increasing vbSalonCOM ")
+            HeatitSalon_SetpointHeating.sendCommand(vbSalonSetting)
+        } else if (vbSalonSetting < vbSalonCOM) {
+            HeatitSalon_SetpointHeating.sendCommand(vbSalonSetting)
+            logInfo("weather_averages.rules", "decreasing vbSalonCOM")
+        } else {
+            logInfo("weather_averages.rules", "vbSalonCOM is OK, doing nothing ")
+        }
+    } else {
+        logInfo("weather_averages.rules", "!!!!!!!!!!!!!! vbSalonCOM NOT DEFINED !!!!!!!!!!!!!!")
+    }
+    if (HeatitSalon_SensorTemperature.state instanceof Number) {
+        var vbSalonTemp = (HeatitSalon_SensorTemperature.state as Number).floatValue
+        logInfo("weather_averages.rules", "vbSalonTemp = " + vbSalonTemp)
+        logInfo("weather_averages.rules", "vbSalonSettingPersistent = " + vbSalonSettingPersistent)
+        if (vbSalonTemp <= vbSalonSettingPersistent) {
+            vbSwitchZircNasos = 1
+            logInfo("weather_averages.rules", "SALON: НАДО ВКЛЮЧИТЬ НАСОС !!!")
+        }
+    } else {
+        logInfo("weather_averages.rules", "!!!!!!!!!!!!!! HeatitSalon_SensorTemperature NOT DEFINED !!!!!!!!!!!!!!")
+        vbSwitchZircNasos = 1
+    }
+        
+    // ======================== KIT4EN ==========================
+    var vbKit4enSettingPersistent = vbKit4enUstavka
+    logInfo("weather_averages.rules", " ======================== KIT4EN ==========================")
+    if (HeatitKit4en_SetpointHeating.state instanceof Number) {
+        //logInfo("weather_averages.rules", "HeatitKit4en_SetpointHeating.state = " + HeatitKit4en_SetpointHeating.state)
+        var vbKit4enCOM = (HeatitKit4en_SetpointHeating.state as Number).floatValue
+        logInfo("weather_averages.rules", "vbKit4enCOM = " + vbKit4enCOM)
+        logInfo("weather_averages.rules", "vbKit4enUstavka = " + vbKit4enUstavka)
+
+        var vbKit4enSetting = vbKit4enUstavka + vbPogodaKasimovoEMA_Delta + vbTimeOfDayTempShift + vbTimeOfDaySavingsShift
+
+    logInfo("weather_averages.rules", "vbKit4enSetting = " + vbKit4enSetting)
+        vbKit4enSetting = Math::floor(vbKit4enSetting.floatValue*2.0+0.5)/2.0
+        vbKit4enSettingPersistent = vbKit4enSetting
+        logInfo("weather_averages.rules", "vbKit4enSetting = " + vbKit4enSetting)
+
+        if (vbKit4enSetting > vbKit4enCOM) {
+            logInfo("weather_averages.rules", "increasing vbKit4enCOM ")
+            HeatitKit4en_SetpointHeating.sendCommand(vbKit4enSetting)
+        } else if (vbKit4enSetting < vbKit4enCOM) {
+            HeatitKit4en_SetpointHeating.sendCommand(vbKit4enSetting)
+            logInfo("weather_averages.rules", "decreasing vbKit4enCOM")
+        } else {
+            logInfo("weather_averages.rules", "vbKit4enCOM is OK, doing nothing ")
+        }
+    } else {
+        logInfo("weather_averages.rules", "!!!!!!!!!!!!!! vbKit4enCOM NOT DEFINED !!!!!!!!!!!!!!")
+    }
+    if (HeatitKit4en_SensorTemperature.state instanceof Number) {
+        var vbKit4enTemp = (HeatitKit4en_SensorTemperature.state as Number).floatValue
+        logInfo("weather_averages.rules", "vbKit4enTemp = " + vbKit4enTemp)
+        logInfo("weather_averages.rules", "vbKit4enSettingPersistent = " + vbKit4enSettingPersistent)
+        if (vbKit4enTemp <= vbKit4enSettingPersistent) {
+            vbSwitchZircNasos = 1
+            logInfo("weather_averages.rules", "KIT4EN: НАДО ВКЛЮЧИТЬ НАСОС !!!")
+        }
+    } else {
+        logInfo("weather_averages.rules", "!!!!!!!!!!!!!! HeatitKit4en_SensorTemperature NOT DEFINED !!!!!!!!!!!!!!")
+        vbSwitchZircNasos = 1
+    }
+
+    // ======================== HALL ===========================
+    var vbHallSettingPersistent = vbHallUstavka
+    logInfo("weather_averages.rules", " ======================== HALL ============================")
+    if (HeatitHall_SetpointHeating.state instanceof Number) {
+        //logInfo("weather_averages.rules", "HeatitHall_SetpointHeating.state = " + HeatitHall_SetpointHeating.state)
+        var vbHallCOM = (HeatitHall_SetpointHeating.state as Number).floatValue
+        logInfo("weather_averages.rules", "vbHallCOM = " + vbHallCOM)
+        logInfo("weather_averages.rules", "vbHallUstavka = " + vbHallUstavka)
+
+        var vbHallSetting = vbHallUstavka + vbPogodaKasimovoEMA_Delta + vbTimeOfDayTempShift + vbTimeOfDaySavingsShift
+
+    logInfo("weather_averages.rules", "vbHallSetting = " + vbHallSetting)
+        vbHallSetting = Math::floor(vbHallSetting.floatValue*2.0+0.5)/2.0
+        vbHallSettingPersistent = vbHallSetting
+        logInfo("weather_averages.rules", "vbHallSetting = " + vbHallSetting)
+
+        if (vbHallSetting > vbHallCOM) {
+            logInfo("weather_averages.rules", "increasing vbHallCOM ")
+            HeatitHall_SetpointHeating.sendCommand(vbHallSetting)
+        } else if (vbHallSetting < vbHallCOM) {
+            HeatitHall_SetpointHeating.sendCommand(vbHallSetting)
+            logInfo("weather_averages.rules", "decreasing vbHallCOM")
+        } else {
+            logInfo("weather_averages.rules", "vbHallCOM is OK, doing nothing ")
+        }
+    } else {
+        logInfo("weather_averages.rules", "!!!!!!!!!!!!!! vbHallCOM NOT DEFINED !!!!!!!!!!!!!!")
+    }
+    if (HeatitHall_SensorTemperature.state instanceof Number) {
+        var vbHallTemp = (HeatitHall_SensorTemperature.state as Number).floatValue
+        logInfo("weather_averages.rules", "vbHallTemp = " + vbHallTemp)
+        logInfo("weather_averages.rules", "vbHallSettingPersistent = " + vbHallSettingPersistent)
+        if (vbHallTemp <= vbHallSettingPersistent) {
+            vbSwitchZircNasos = 1
+            logInfo("weather_averages.rules", "HALL: НАДО ВКЛЮЧИТЬ НАСОС !!!")
+        }
+    } else {
+        logInfo("weather_averages.rules", "!!!!!!!!!!!!!! HeatitHall_SensorTemperature NOT DEFINED !!!!!!!!!!!!!!")
+        vbSwitchZircNasos = 1
+    }
+
+    // ======================== SPORTZAL =========================
+    logInfo("weather_averages.rules", " ======================== SPORTZAL ==========================")
+    logInfo("weather_averages.rules", "vbSportZalUstavka = " + vbSportZalUstavka)
+    if (MS_SportZal.state instanceof Number) {
+        logInfo("weather_averages.rules", "MS_SportZal.state = " + MS_SportZal.state)
+        var vbMS_SportZalTemp = (MS_SportZal.state as Number).floatValue
+        if (vbMS_SportZalTemp>vbSportZalUstavka) {
+            vbSportZalUstavka = vbSportZalUstavka - 5
+            logInfo("weather_averages.rules", " вычитаем 5 градусов из vbSportZalUstavka")
+        } else {
+            vbSportZalUstavka = vbSportZalUstavka + 5
+            logInfo("weather_averages.rules", " добавлем 5 градусов к vbSportZalUstavka")
+        }
+    }
+
+    var vbSportZalSettingPersistent = vbSportZalUstavka
+
+    if (HeatitSportZal_SetpointHeating.state instanceof Number) {
+        //logInfo("weather_averages.rules", "HeatitSportZal_SetpointHeating.state = " + HeatitSportZal_SetpointHeating.state)
+        var vbSportZalCOM = (HeatitSportZal_SetpointHeating.state as Number).floatValue
+        logInfo("weather_averages.rules", "vbSportZalCOM = " + vbSportZalCOM)
+        logInfo("weather_averages.rules", "vbSportZalUstavka = " + vbSportZalUstavka)
+
+        var vbSportZalSetting = vbSportZalUstavka + vbWindSportZalTempShift + 0.5 * vbPogodaKasimovoEMA_Delta + vbTimeOfDayTempShift + vbTimeOfDaySavingsShift
+
+    logInfo("weather_averages.rules", "vbSportZalSetting = " + vbSportZalSetting)
+        vbSportZalSetting = Math::floor(vbSportZalSetting.floatValue*2.0+0.5)/2.0
+        vbSportZalSettingPersistent = vbSportZalSetting
+        logInfo("weather_averages.rules", "vbSportZalSetting = " + vbSportZalSetting)
+
+        if (vbSportZalSetting > vbSportZalCOM) {
+            logInfo("weather_averages.rules", "increasing vbSportZalCOM ")
+            HeatitSportZal_SetpointHeating.sendCommand(vbSportZalSetting)
+        } else if (vbSportZalSetting < vbSportZalCOM) {
+            HeatitSportZal_SetpointHeating.sendCommand(vbSportZalSetting)
+            logInfo("weather_averages.rules", "decreasing vbSportZalCOM")
+        } else {
+            logInfo("weather_averages.rules", "vbSportZalCOM is OK, doing nothing ")
+        }
+    } else {
+        logInfo("weather_averages.rules", "!!!!!!!!!!!!!! vbSportZalCOM NOT DEFINED !!!!!!!!!!!!!!")
+    }
+
+    if (HeatitSportZal_SensorTemperature.state instanceof Number) {
+        var vbSportZalTemp = (HeatitSportZal_SensorTemperature.state as Number).floatValue
+        logInfo("weather_averages.rules", "vbSportZalTemp = " + vbSportZalTemp)
+        logInfo("weather_averages.rules", "vbSportZalSettingPersistent = " + vbSportZalSettingPersistent)
+        if (vbSportZalTemp <= vbSportZalSettingPersistent) {
+            vbSwitchZircNasos = 1
+            logInfo("weather_averages.rules", "SPORTZAL: НАДО ВКЛЮЧИТЬ НАСОС !!!")
+        }
+    } else {
+        logInfo("weather_averages.rules", "!!!!!!!!!!!!!! HeatitSportZal_SensorTemperature NOT DEFINED !!!!!!!!!!!!!!")
+        vbSwitchZircNasos = 1
+    }
+
+    // ======================== BATHROOM =========================
+
+    logInfo("weather_averages.rules", " ======================== BATHROOM ==========================")
+    var vbMS_BathRoomTemp = vbBathRoomUstavka
+    var vbBathRoomSettingPersistent = vbBathRoomUstavka
+    if (MS_BathRoom.state instanceof Number) {
+        vbMS_BathRoomTemp = (MS_BathRoom.state as Number).floatValue
+    } else {
+        logInfo("weather_averages.rules", "!!!!!!!!!!!!!! MS_BathRoom.state NOT DEFINED !!!!!!!!!!!!!!")
+    }
+    logInfo("weather_averages.rules", "vbMS_BathRoomTemp = " + vbMS_BathRoomTemp)
+
+    if (HeatitBathRoom_SetpointHeating.state instanceof Number) {
+        //logInfo("weather_averages.rules", "HeatitBathRoom_SetpointHeating.state = " + HeatitBathRoom_SetpointHeating.state)
+        var vbBathRoomCOM = (HeatitBathRoom_SetpointHeating.state as Number).floatValue
+        logInfo("weather_averages.rules", "vbBathRoomCOM = " + vbBathRoomCOM)
+        logInfo("weather_averages.rules", "vbBathRoomUstavka = " + vbBathRoomUstavka)
+        
+        var vbBathRoomSetting = vbBathRoomUstavka + (vbBathRoomUstavka - vbMS_BathRoomTemp)/1.25 + vbTimeOfDayTempShift + vbTimeOfDaySavingsShift
+
+        logInfo("weather_averages.rules", "vbBathRoomSetting = " + vbBathRoomSetting)
+        vbBathRoomSetting = Math::floor(vbBathRoomSetting.floatValue*2.0+0.5)/2.0
+        vbBathRoomSettingPersistent = vbBathRoomSetting
+        logInfo("weather_averages.rules", "vbBathRoomSetting = " + vbBathRoomSetting)
+
+        if (vbBathRoomSetting > vbBathRoomCOM) {
+            logInfo("weather_averages.rules", "increasing vbBathRoomCOM ")
+            HeatitBathRoom_SetpointHeating.sendCommand(vbBathRoomSetting)
+        } else if (vbBathRoomSetting < vbBathRoomCOM) {
+            HeatitBathRoom_SetpointHeating.sendCommand(vbBathRoomSetting)
+            logInfo("weather_averages.rules", "decreasing vbBathRoomCOM")
+        } else {
+            logInfo("weather_averages.rules", "vbBathRoomCOM is OK, doing nothing ")
+        }
+    } else {
+        logInfo("weather_averages.rules", "!!!!!!!!!!!!!! vbBathRoomCOM NOT DEFINED !!!!!!!!!!!!!!")
+    }
+    if (HeatitBathRoom_SensorTemperature.state instanceof Number) {
+        var vbBathRoomTemp = (HeatitBathRoom_SensorTemperature.state as Number).floatValue
+        logInfo("weather_averages.rules", "vbBathRoomTemp = " + vbBathRoomTemp)
+        logInfo("weather_averages.rules", "vbBathRoomSettingPersistent = " + vbBathRoomSettingPersistent)
+        if (vbBathRoomTemp < vbBathRoomSettingPersistent) {
+            vbSwitchZircNasos = 1
+            logInfo("weather_averages.rules", "BATHROOM: НАДО ВКЛЮЧИТЬ НАСОС !!!")
+        }
+    } else {
+        logInfo("weather_averages.rules", "!!!!!!!!!!!!!! HeatitBathRoom_SensorTemperature NOT DEFINED !!!!!!!!!!!!!!")
+        vbSwitchZircNasos = 1
+    }
+    
+    if (PAN06_Switch2.state  === NULL) {
+        logInfo("weather_averages.rules", "!!!!!!!!!!!!!! PAN06_Switch2.state NOT DEFINED !!!!!!!!!!!!!!")
+        PAN06_Switch2.sendCommand(ON)
+    } else {
+        logInfo("weather_averages.rules", "PAN06_Switch2.state = " + PAN06_Switch2.state)
+        if ((vbSwitchZircNasos == 0) && (PAN06_Switch2.state == ON)) {
+            logInfo("weather_averages.rules", "switching ZircNasos OFF ")
+            PAN06_Switch2.sendCommand(OFF)
+            vbRelay_2.postUpdate(0)
+        } else if ((vbSwitchZircNasos == 0) && (PAN06_Switch2.state == OFF)) {
+            logInfo("weather_averages.rules", "ZircNasos is OFF, doing nothing")
+            vbRelay_2.postUpdate(0)
+        } else if ((vbSwitchZircNasos == 1) && (PAN06_Switch2.state == ON)) {
+            logInfo("weather_averages.rules", "ZircNasos is ON, doing nothing") 
+            vbRelay_2.postUpdate(1)
+        } else if ((vbSwitchZircNasos == 1) && (PAN06_Switch2.state == OFF)) {
+            logInfo("weather_averages.rules", "switching ZircNasos ON ")
+            PAN06_Switch2.sendCommand(ON)
+            vbRelay_2.postUpdate(1)
+        }
+       
+    }    
+    //logInfo("weather_averages.rules", "---------------> TEST OK !!!")
+
+end

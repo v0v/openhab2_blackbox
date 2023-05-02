@@ -1,0 +1,213 @@
+sitemap weather label="Heating" {
+
+    Frame label="Теплица" {        
+        //Text item=TemperatureSensor_3V_Temperature  label="Температура в теплице [%.1f °C]" valuecolor=[>35="orange",>15="green",<=15="blue"]{
+        //    Frame { 
+        //        Chart item=TemperatureSensor_3V_Temperature period=min refresh=30000
+        //    }
+        //}
+        Text item=vbTempTeplizaFiltered  label="Температура в теплице [%.1f °C]" valuecolor=[>35="orange",>15="green",<=15="blue"]{
+            Frame { 
+                Chart item=vbTempTeplizaFiltered period=min refresh=30000
+                Chart item=OpenWeatherMap_Current_OutdoorTemperature period=min refresh=30000
+                Chart item=vbMySen238HeaterIRelay_Status period=min refresh=30000
+                Chart item=vbMySen248HeaterIIRelay_Status period=min refresh=30000
+            }
+        }
+        Text item=MySen021_TemperatureSensor_LastUpdate label="Время обновления [%1$td/%1$tm %1$tH:%1$tM ]"
+
+        Text item=MySen2313HeaterITemp_Temperature  label="Температура Heater I [%.1f °C]" valuecolor=[>35="orange",>15="green",<=15="blue"]{
+            Frame { 
+                Chart item=vbTempHeater_I_Filtered period=min refresh=30000
+            }
+        }
+        Text item=MySen2313HeaterITemp_LastUpdate label="Время обновления [%1$td/%1$tm %1$tH:%1$tM ]"
+
+        Switch item=MySen238HeaterIRelay_Status label="Relay Heater I" 
+        Text item=vbMySen238HeaterIRelay_Status  label="Heater I [%.0f]" {
+            Frame { 
+                Chart item=vbMySen238HeaterIRelay_Status period=min refresh=30000
+            }
+        }
+        Text item=MySen2413HeaterIITemp_Temperature  label="Температура Heater II [%.1f °C]" valuecolor=[>35="orange",>15="green",<=15="blue"]{
+            Frame { 
+                Chart item=vbTempHeater_II_Filtered period=min refresh=30000
+            }
+        }
+        Text item=MySen2413HeaterIITemp_LastUpdate label="Время обновления [%1$td/%1$tm %1$tH:%1$tM ]"
+
+        Switch item=MySen248HeaterIIRelay_Status label="Relay Heater II" 
+        Text item=vbMySen248HeaterIIRelay_Status  label="Heater II [%.0f]" {
+            Frame { 
+                Chart item=vbMySen248HeaterIIRelay_Status period=min refresh=30000
+            }
+        }
+        Text item=vbTeplizaHeaterToggleCounter label="vbTeplizaHeaterToggleCounter [%.0f min]"      
+    }
+
+    Frame label="Weather" {
+        Text item=OpenWeatherMap_Current_OutdoorTemperature  label="Погода Касимово [%.1f °C]" valuecolor=[>25="orange",>15="green",<=15="blue"]{
+            Frame { 
+                //Text item=Temp_Max valuecolor=[>25="orange",>15="green",>5="orange",<=5="blue"]
+                //Text item=Temp_Min valuecolor=[>25="orange",>15="green",>5="orange",<=5="blue"]
+                Chart item=OpenWeatherMap_Current_OutdoorTemperature period=min refresh=30000
+                Chart item=Kasimovo_OWM_Temp period=min refresh=30000
+            }
+        }
+        Text item=DarkSkyKasimovo_Current_AtmosphericHumidity  label="Влажность Касимово [%d %%]" 
+        Text item=OpenWeatherMap_Current_WindSpeed  label="Ветер Касимово [%.1f м/с]" 
+        Text item=OpenWeatherMap_Current_WindDirection  label="Направление ветра Касимово [%s]" 
+        Text item=Kasimovo_OWM_Temp  label="Погода Касимово OWM [%.1f °C]" valuecolor=[>25="orange",>15="green",<=15="blue"]{
+            Frame { 
+                Chart item=Kasimovo_OWM_Temp period=min refresh=30000
+            }
+        }
+        Text item=OpenWeatherMap_Current_OutdoorTemperature  label="Погода Касимово OWM binding [%.1f °C]" valuecolor=[>25="orange",>15="green",<=15="blue"]{
+            Frame { 
+                Chart item=OpenWeatherMap_Current_OutdoorTemperature period=min refresh=30000
+            }
+        }
+
+        Text item=vbItemWeatherEMA  label="vbItemWeatherEMA [%.1f °C]" 
+        Text item=vbItemWeatherEMA_BIG  label="vbItemWeatherEMA_BIG [%.1f °C]"     
+    }
+
+    Frame label="4erdak" {        
+        Text item=MS_4erdak  label="MS 4erdak [%.1f °C]" valuecolor=[>24="orange",>15="green",<=15="blue"]{
+            Frame { 
+                Chart item=MS_4erdak period=min refresh=30000
+            }
+        }
+
+        Text item=vbMS_4erdakEMA_BIG label="vbMS_4erdakEMA_BIG [%.1f °C]"     
+        
+        Switch item=PAN06_Switch1 label="Relay I" 
+
+        Text item=vbRelay_1  label="vbRelay 1 [%.0f]" {
+            Frame { 
+                Chart item=vbRelay_1 period=min refresh=30000
+            }
+        }
+        Text item=vbCherdakNasosToggleCounter label="vbCherdakNasosToggleCounter [%.0f min]"     
+    }
+
+    Frame label="BathRoom" {        
+        Text item=MS_BathRoom  label="MS BathRoom [%.1f °C]" valuecolor=[>27="orange",>24="green",<=24="blue"]{
+            Frame { 
+                Chart item=MS_BathRoom period=min refresh=30000
+            }
+        }
+
+        Text item=HeatitBathRoom_SensorTemperature  label="HeatitBathRoom_SensorTemperature [%.1f °C]" valuecolor=[>27="orange",>24="green",<=24="blue"]{
+            Frame { 
+                Chart item=HeatitBathRoom_SensorTemperature period=min refresh=30000
+            }
+        }
+
+        Text item=HeatitBathRoom_SetpointHeating  label="HeatitBathRoom_SetpointHeating [%.1f °C]" valuecolor=[>27="orange",>24="green",<=24="blue"]{
+            Frame { 
+                Chart item=HeatitBathRoom_SetpointHeating period=min refresh=30000
+            }
+        }
+    }
+
+    Frame label="Salon" {        
+        Text item=MS_Salon  label="MS Salon [%.1f °C]" valuecolor=[>24="orange",>22="green",<=22="blue"]{
+            Frame { 
+                Chart item=MS_Salon period=min refresh=30000
+            }
+        }
+
+        Text item=HeatitSalon_SensorTemperature  label="HeatitSalon_SensorTemperature [%.1f °C]" valuecolor=[>24="orange",>22="green",<=22="blue"]{
+            Frame { 
+                Chart item=HeatitSalon_SensorTemperature period=min refresh=30000
+            }
+        }
+
+        Text item=HeatitSalon_SetpointHeating  label="HeatitSalon_SetpointHeating [%.1f °C]" valuecolor=[>24="orange",>22="green",<=22="blue"]{
+            Frame { 
+                Chart item=HeatitSalon_SetpointHeating period=min refresh=30000
+            }
+        }
+    }
+
+    Frame label="SportZal" {        
+        Text item=MS_SportZal  label="MS SportZal [%.1f °C]" valuecolor=[>23="orange",>22="green",<=22="blue"]{
+            Frame { 
+                Chart item=MS_SportZal period=min refresh=30000
+            }
+        }
+
+        Text item=HeatitSportZal_SensorTemperature  label="HeatitSportZal_SensorTemperature [%.1f °C]" valuecolor=[>24="orange",>22="green",<=22="blue"]{
+            Frame { 
+                Chart item=HeatitSportZal_SensorTemperature period=min refresh=30000
+            }
+        }
+
+        Text item=HeatitSportZal_SetpointHeating  label="HeatitSportZal_SetpointHeating [%.1f °C]" valuecolor=[>24="orange",>22="green",<=22="blue"]{
+            Frame { 
+                Chart item=HeatitSportZal_SetpointHeating period=min refresh=30000
+            }
+        }
+    } 
+
+    Frame label="Kit4en + Hall" {        
+        Text item=HeatitKit4en_SensorTemperature  label="HeatitKit4en_SensorTemperature [%.1f °C]" valuecolor=[>24="orange",>22="green",<=22="blue"]{
+            Frame { 
+                Chart item=HeatitKit4en_SensorTemperature period=min refresh=30000
+            }
+        }
+
+        Text item=HeatitKit4en_SetpointHeating  label="HeatitKit4en_SetpointHeating [%.1f °C]" valuecolor=[>24="orange",>22="green",<=22="blue"]{
+            Frame { 
+                Chart item=HeatitKit4en_SetpointHeating period=min refresh=30000
+            }
+        }
+
+        Text item=HeatitHall_SensorTemperature  label="HeatitHall_SensorTemperature [%.1f °C]" valuecolor=[>24="orange",>22="green",<=22="blue"]{
+            Frame { 
+                Chart item=HeatitHall_SensorTemperature period=min refresh=30000
+            }
+        }
+
+        Text item=HeatitHall_SetpointHeating  label="HeatitHall_SetpointHeating [%.1f °C]" valuecolor=[>24="orange",>22="green",<=22="blue"]{
+            Frame { 
+                Chart item=HeatitHall_SetpointHeating period=min refresh=30000
+            }
+        }
+    }
+
+    Frame label="Цирк.насос" {        
+        Switch item=PAN06_Switch2 label="Relay II" 
+
+        Text item=vbRelay_2  label="vbRelay 2 [%.0f]" {
+            Frame { 
+                Chart item=vbRelay_2 period=min refresh=30000
+            }
+        }
+    }
+
+    Frame label="Balcon" {        
+        Text item=HeatitBalcon_SensorTemperature  label="HeatitBalcon_SensorTemperature [%.1f °C]" valuecolor=[>24="orange",>22="green",<=22="blue"]{
+            Frame { 
+                Chart item=HeatitBalcon_SensorTemperature period=min refresh=30000
+            }
+        }
+        Text item=HeatitBalcon_SetpointHeating  label="HeatitBalcon_SetpointHeating [%.1f °C]" valuecolor=[>24="orange",>02="green",<=0="blue"]{
+            Frame { 
+                Chart item=HeatitBalcon_SetpointHeating period=min refresh=30000
+            }
+        }
+        Text item=HeatitBalcon_ThermostatMode label="HeatitBalcon_ThermostatMode" {
+            Frame { 
+                Chart item=HeatitBalcon_ThermostatMode period=min refresh=30000
+            }
+        }
+        Switch item=HeatitBalcon_ThermostatState label="HeatitBalcon_ThermostatState" 
+        Text item=vbHeatitBalcon_ThermostatState  label="vbHeatitBalcon_ThermostatState [%.0f]" {
+            Frame { 
+                Chart item=vbHeatitBalcon_ThermostatState period=min refresh=30000
+            }
+        }
+    }
+}

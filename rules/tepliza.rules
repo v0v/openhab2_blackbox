@@ -1,0 +1,133 @@
+rule "Tepliza"
+ 
+when
+	//Time cron "0 0/5 * * * ?"
+	Time cron "0 * * * * ?" //for debug
+then
+
+val vbTeplizaRoomUstavka = 9.1
+val vbTeplizaHeaterToggleLimit = 90
+
+if ((now.getHourOfDay < 7)||(now.getHourOfDay >= 23)) {
+    vbTeplizaRoomUstavka = vbTeplizaRoomUstavka + 2
+}
+
+if (vbTeplizaHeaterToggleCounter.state==NULL) {vbTeplizaHeaterToggleCounter.postUpdate(0)}
+    var Number vb_var_TeplizaHeaterToggleCounter = (vbTeplizaHeaterToggleCounter.state as Number).floatValue 
+    logInfo("tepliza.rules", "vbTeplizaHeaterToggleCounter = " + vb_var_TeplizaHeaterToggleCounter)
+
+if (vbTempHeater_I_Filtered.state==NULL) {vbTempHeater_I_Filtered.postUpdate(MySen2313HeaterITemp_Temperature.state)}
+if (MySen2313HeaterITemp_Temperature.state instanceof Number) {
+    var HeaterITemp = (MySen2313HeaterITemp_Temperature.state as Number).floatValue
+    var HeaterITempPrev = (vbTempHeater_I_Filtered.state as Number).floatValue
+    logInfo("tepliza.rules", "HeaterITempPrev = " + HeaterITempPrev)
+    if ((HeaterITemp > -77 && HeaterITemp < 77) && (Math::abs(HeaterITemp - HeaterITempPrev) < 10)){
+        logInfo("tepliza.rules", "updating vbTempHeater_I_Filtered = " + MySen2313HeaterITemp_Temperature.state)
+        vbTempHeater_I_Filtered.postUpdate(MySen2313HeaterITemp_Temperature.state)  
+    }
+}
+
+if (vbTempHeater_II_Filtered.state==NULL) {vbTempHeater_II_Filtered.postUpdate(MySen2413HeaterIITemp_Temperature.state)}
+if (MySen2413HeaterIITemp_Temperature.state instanceof Number) {
+    var HeaterIITemp = (MySen2413HeaterIITemp_Temperature.state as Number).floatValue
+    var HeaterIITempPrev = (vbTempHeater_II_Filtered.state as Number).floatValue
+    logInfo("tepliza.rules", "HeaterIITempPrev = " + HeaterIITempPrev)
+    if ((HeaterIITemp > -77 && HeaterIITemp < 77) && (Math::abs(HeaterIITemp - HeaterIITempPrev) < 10)){
+        logInfo("tepliza.rules", "updating vbTempHeater_II_Filtered = " + MySen2413HeaterIITemp_Temperature.state)
+        vbTempHeater_II_Filtered.postUpdate(MySen2413HeaterIITemp_Temperature.state)  
+    }
+}
+
+if (TemperatureSensor_3V_Temperature.state instanceof Number) {
+    logInfo("tepliza.rules", "TemperatureSensor_3V_Temperature = " + TemperatureSensor_3V_Temperature.state)
+    var vbTeplizaRoomTemp = (TemperatureSensor_3V_Temperature.state as Number).floatValue
+    logInfo("tepliza.rules", "vbTeplizaRoomTemp = " + vbTeplizaRoomTemp)
+    logInfo("tepliza.rules", "MySen238HeaterIRelay_Status.state = " + MySen238HeaterIRelay_Status.state)
+    logInfo("tepliza.rules", "MySen248HeaterIIRelay_Status.state = " + MySen248HeaterIIRelay_Status.state)
+    logInfo("tepliza.rules", "vbTeplizaRoomUstavka = " + vbTeplizaRoomUstavka)
+    
+    var vbTeplizaRoomTempPrev = (vbTempTeplizaFiltered.state as Number).floatValue
+    logInfo("tepliza.rules", "vbTeplizaRoomTempPrev = " + vbTeplizaRoomTempPrev)
+    if ((vbTeplizaRoomTemp > -77 && vbTeplizaRoomTemp < 77) && (Math::abs(vbTeplizaRoomTemp - vbTeplizaRoomTempPrev) < 10)){
+        //var vbTempTeplizaFiltered = TemperatureSensor_3V_Temperature
+        logInfo("tepliza.rules", "updating vbTempTeplizaFiltered = " + TemperatureSensor_3V_Temperature.state)
+        vbTempTeplizaFiltered.postUpdate(TemperatureSensor_3V_Temperature.state)
+
+        if  (vbTeplizaRoomTemp > 32) {
+            sendBroadcastNotification("Высокая температура в теплице!!!")
+            logInfo("boiler.rules", "Sending alert = Высокая температура в теплице!!!")
+        }
+
+        if  (vbTeplizaRoomTemp < 4) {
+            sendBroadcastNotification("Низкая температура в теплице!!!")
+            logInfo("boiler.rules", "Sending alert = Низкая температура в теплице!!!")
+        }
+
+        if ((vb_var_TeplizaHeaterToggleCounter >= vbTeplizaHeaterToggleLimit) && ((MySen238HeaterIRelay_Status.state == ON)||(MySen248HeaterIIRelay_Status.state == ON))) {
+                logInfo("weather_averages.rules", "switching Heater I OFF because of big counter")
+                MySen238HeaterIRelay_Status.sendCommand(OFF)
+                vbMySen238HeaterIRelay_Status.postUpdate(0)
+                MySen248HeaterIIRelay_Status.sendCommand(OFF)
+                vbMySen248HeaterIIRelay_Status.postUpdate(0)
+                vbTeplizaHeaterToggleCounter.postUpdate(0)
+            } else if ((vb_var_TeplizaHeaterToggleCounter >= vbTeplizaHeaterToggleLimit) && ((MySen238HeaterIRelay_Status.state == OFF)||(MySen248HeaterIIRelay_Status.state == OFF))) {
+                logInfo("weather_averages.rules", "switching Heater I ON because of big counter")
+                MySen238HeaterIRelay_Status.sendCommand(ON)
+                vbMySen238HeaterIRelay_Status.postUpdate(1)
+                MySen248HeaterIIRelay_Status.sendCommand(ON)
+                vbMySen248HeaterIIRelay_Status.postUpdate(1)
+                vbTeplizaHeaterToggleCounter.postUpdate(0)
+            } else if  (vbTeplizaRoomTemp >= vbTeplizaRoomUstavka + 5) {
+                logInfo("tepliza.rules", "switching Heater I OFF - ПРИНУДИТЕЛЬНО!!!")
+                MySen238HeaterIRelay_Status.sendCommand(OFF)
+                vbMySen238HeaterIRelay_Status.postUpdate(0)
+                MySen248HeaterIIRelay_Status.sendCommand(OFF)
+                vbMySen248HeaterIIRelay_Status.postUpdate(0)
+                vbTeplizaHeaterToggleCounter.postUpdate(vb_var_TeplizaHeaterToggleCounter+1)
+                //vbTeplizaHeaterToggleCounter.postUpdate(0)
+            } else if ((vbTeplizaRoomTemp >= vbTeplizaRoomUstavka) && ((MySen238HeaterIRelay_Status.state == ON)||(MySen248HeaterIIRelay_Status.state == ON))) {
+                logInfo("tepliza.rules", "switching Heater I OFF ")
+                MySen238HeaterIRelay_Status.sendCommand(OFF)
+                vbMySen238HeaterIRelay_Status.postUpdate(0)
+                MySen248HeaterIIRelay_Status.sendCommand(OFF)
+                vbMySen248HeaterIIRelay_Status.postUpdate(0)
+                vbTeplizaHeaterToggleCounter.postUpdate(0)
+            } else if ((vbTeplizaRoomTemp >= vbTeplizaRoomUstavka) && (MySen238HeaterIRelay_Status.state == OFF)&& (MySen248HeaterIIRelay_Status.state == OFF)) {
+                logInfo("tepliza.rules", "Heater I is OFF, doing nothing")
+                vbMySen238HeaterIRelay_Status.postUpdate(0)
+                vbMySen248HeaterIIRelay_Status.postUpdate(0)
+                vbTeplizaHeaterToggleCounter.postUpdate(vb_var_TeplizaHeaterToggleCounter+1)
+            } else if (vbTeplizaRoomTemp < vbTeplizaRoomUstavka - 3) {
+                logInfo("tepliza.rules", "switching Heater I ON - ПРИНУДИТЕЛЬНО!!!") 
+                MySen238HeaterIRelay_Status.sendCommand(ON)
+                vbMySen238HeaterIRelay_Status.postUpdate(1)
+                MySen248HeaterIIRelay_Status.sendCommand(ON)
+                vbMySen248HeaterIIRelay_Status.postUpdate(1)
+                vbTeplizaHeaterToggleCounter.postUpdate(vb_var_TeplizaHeaterToggleCounter+1)
+                //vbTeplizaHeaterToggleCounter.postUpdate(0)
+            } else if ((vbTeplizaRoomTemp < vbTeplizaRoomUstavka) && (MySen238HeaterIRelay_Status.state == ON) && (MySen248HeaterIIRelay_Status.state == ON)) {
+                logInfo("tepliza.rules", "Heater I is ON, doing nothing") 
+                vbMySen238HeaterIRelay_Status.postUpdate(1)
+                vbMySen248HeaterIIRelay_Status.postUpdate(1)
+                vbTeplizaHeaterToggleCounter.postUpdate(vb_var_TeplizaHeaterToggleCounter+1)
+            } else if ((vbTeplizaRoomTemp < vbTeplizaRoomUstavka) && ((MySen238HeaterIRelay_Status.state == OFF)||(MySen248HeaterIIRelay_Status.state == OFF))) {
+                logInfo("tepliza.rules", "switching Heater I ON ")
+                MySen238HeaterIRelay_Status.sendCommand(ON)
+                vbMySen238HeaterIRelay_Status.postUpdate(1)
+                MySen248HeaterIIRelay_Status.sendCommand(ON)
+                vbMySen248HeaterIIRelay_Status.postUpdate(1)
+                vbTeplizaHeaterToggleCounter.postUpdate(0)
+            } else if ((MySen238HeaterIRelay_Status.state == NULL)||(MySen248HeaterIIRelay_Status.state == NULL)) {
+                logInfo("tepliza.rules", "switching Heater I ON потому что NULL")
+                MySen238HeaterIRelay_Status.sendCommand(ON)
+                vbMySen238HeaterIRelay_Status.postUpdate(1)
+                MySen248HeaterIIRelay_Status.sendCommand(ON)
+                vbMySen248HeaterIIRelay_Status.postUpdate(1)
+                vbTeplizaHeaterToggleCounter.postUpdate(0)
+            }
+    }
+}
+            
+//vbMySen238HeaterIRelay_Status.postUpdate(MySen238HeaterIRelay_Status.state)
+
+end

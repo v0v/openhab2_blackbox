@@ -1,0 +1,98 @@
+rule "Boiler"
+
+when
+	//Time cron "0 0/5 * * * ?"
+	Time cron "0 * * * * ?" //for debug
+then
+ 
+    val vbNasosGVSUstavka = 38.50
+    val vbNasosGVSUstavkaECO = 34.50
+    val vbNasosGVSUstavkaRED_HEAT = 29.50
+    val vbNasosGVSUstavkaVERY_RED_HEAT = 25.50
+
+    if (now.getMinuteOfDay < 500) {
+        vbNasosGVSUstavka = vbNasosGVSUstavkaECO
+    } 
+
+    if (DarkSkyKasimovo_Current_OutdoorTemperature.state != NULL) {
+        var Temp = (DarkSkyKasimovo_Current_OutdoorTemperature.state as Number).floatValue
+        if (Temp > 25) {
+            vbNasosGVSUstavka = vbNasosGVSUstavkaVERY_RED_HEAT
+        } else if (Temp > 22) {
+            vbNasosGVSUstavka = vbNasosGVSUstavkaRED_HEAT
+        }
+    } 
+
+    logInfo("boiler.rules", " ======================== NASOS GVS =========================")
+
+    var int vbNasosGVSPressureDisable = 0
+    logInfo("boiler.rules", "MySen220WaterPressure_Pressure = " + MySen220WaterPressure_Pressure.state)
+    if (!(MySen220WaterPressure_Pressure.state instanceof Number)) {
+        logInfo("boiler.rules", "!!!!!!!!!!!!!! MySen220WaterPressure_Pressure NOT DEFINED !!!!!!!!!!!!!!")
+    } else {
+        logInfo("boiler.rules", "MySen220WaterPressure_Pressure = " + MySen220WaterPressure_Pressure.state)
+        var vbWaterPressure = (MySen220WaterPressure_Pressure.state as Number).floatValue
+        logInfo("boiler.rules", "vbWaterPressure = " + vbWaterPressure)
+        if  (vbWaterPressure < 0.15) {
+            //vbNasosGVSPressureDisable = 1
+        }
+    }
+
+    if (MySen228RelayI_Status.state  === NULL) {
+        logInfo("boiler.rules", "!!!!!!!!!!!!!! MySen228RelayI_Status.state NOT DEFINED !!!!!!!!!!!!!!")
+        MySen228RelayI_Status.sendCommand(ON)
+    } else {
+        if (MySen2214NasosTemp_Temperature.state instanceof Number) {
+            logInfo("boiler.rules", "MySen2214NasosTemp_Temperature = " + MySen2214NasosTemp_Temperature.state)
+            var vbNasosGVSTemp = (MySen2214NasosTemp_Temperature.state as Number).floatValue
+            logInfo("boiler.rules", "vbNasosGVSTemp = " + vbNasosGVSTemp)
+            logInfo("boiler.rules", "MySen228RelayI_Status.state = " + MySen228RelayI_Status)
+
+            //vb4erdakSetting = Math::round(vb4erdakSetting.floatValue*1000.0)/1000.0
+            logInfo("boiler.rules", "vbNasosGVSUstavka = " + vbNasosGVSUstavka)
+            if  (vbNasosGVSPressureDisable == 1) {
+                logInfo("boiler.rules", "НИЗКОЕ ДАВЛЕНИЕ!!! switching nasos GVS OFF ")
+                MySen228RelayI_Status.sendCommand(OFF)
+                vbRelayMS02208.postUpdate(0)
+            } else if (vbNasosGVSTemp >= vbNasosGVSUstavka + 5) {
+                logInfo("boiler.rules", "switching nasos GVS OFF - ПРИНУДИТЕЛЬНО!!!")
+                MySen228RelayI_Status.sendCommand(OFF)
+                vbRelayMS02208.postUpdate(0)
+            } else if ((vbNasosGVSTemp >= vbNasosGVSUstavka) && (MySen228RelayI_Status.state == ON)) {
+                logInfo("boiler.rules", "switching nasos GVS OFF ")
+                MySen228RelayI_Status.sendCommand(OFF)
+                vbRelayMS02208.postUpdate(0)
+            } else if ((vbNasosGVSTemp >= vbNasosGVSUstavka) && (MySen228RelayI_Status.state == OFF)) {
+                logInfo("boiler.rules", "nasos GVS is OFF, doing nothing")
+                vbRelayMS02208.postUpdate(0)
+            } else if (vbNasosGVSTemp < vbNasosGVSUstavka - 3) {
+                logInfo("boiler.rules", "switching nasos GVS ON - ПРИНУДИТЕЛЬНО!!!") 
+                MySen228RelayI_Status.sendCommand(ON)
+                vbRelayMS02208.postUpdate(1)
+            } else if ((vbNasosGVSTemp < vbNasosGVSUstavka) && (MySen228RelayI_Status.state == ON)) {
+                logInfo("boiler.rules", "nasos GVS is ON, doing nothing") 
+                vbRelayMS02208.postUpdate(1)
+            } else if ((vbNasosGVSTemp < vbNasosGVSUstavka) && (MySen228RelayI_Status.state == OFF)) {
+                logInfo("boiler.rules", "switching nasos GVS ON ")
+                MySen228RelayI_Status.sendCommand(ON)
+                vbRelayMS02208.postUpdate(1)
+            }
+        }
+    }
+
+
+    if (!(MySen2215BoilerTemp_Temperature.state instanceof Number)) {
+        logInfo("boiler.rules", "!!!!!!!!!!!!!! MySen2215BoilerTemp_Temperature NOT DEFINED !!!!!!!!!!!!!!")
+    } else {
+        logInfo("boiler.rules", "MySen2215BoilerTemp_Temperature = " + MySen2215BoilerTemp_Temperature.state)
+        var vbBoilerTemperature = (MySen2215BoilerTemp_Temperature.state as Number).floatValue
+        logInfo("boiler.rules", "vbBoilerTemperature = " + vbBoilerTemperature)
+        if ((vbBoilerTemperature < 38) && (vbBoilerTemperature > 22)) {
+            sendBroadcastNotification("Низкая температура бойлера!")
+            logInfo("boiler.rules", "Sending alert = Низкая температура бойлера!")
+        }
+    }
+
+
+
+end

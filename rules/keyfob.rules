@@ -1,0 +1,49 @@
+rule "Act on keyfob buttons"
+when
+Item ZWaveNode054ZW0884ButtonKeyfobGen5_SceneNumber received update
+then
+    logInfo("Keyfob Scene", "Keyfob - Scene ->> " + ZWaveNode054ZW0884ButtonKeyfobGen5_SceneNumber.state )
+    switch ZWaveNode054ZW0884ButtonKeyfobGen5_SceneNumber.state {
+        case 1: {
+            ZWaveNode035ZME_05431SwitchSportZalMain_Dimmer.sendCommand(ON)
+        }
+        case 2: {
+            if (ZWaveNode035ZME_05431SwitchSportZalMain_Dimmer.state instanceof DecimalType) {
+                var brightness = ZWaveNode035ZME_05431SwitchSportZalMain_Dimmer.state as Number + 10
+                if(brightness > 99) brightness = 100
+                ZWaveNode035ZME_05431SwitchSportZalMain_Dimmer.sendCommand(brightness)
+            }
+        }
+        case 5: {
+            ZWaveNode035ZME_05431SwitchSportZalMain_Dimmer.sendCommand(OFF)
+        }
+        case 6: {
+            if (ZWaveNode035ZME_05431SwitchSportZalMain_Dimmer.state instanceof DecimalType) {
+                var brightness = ZWaveNode035ZME_05431SwitchSportZalMain_Dimmer.state as Number - 10
+                if(brightness < 1) brightness = 0
+                ZWaveNode035ZME_05431SwitchSportZalMain_Dimmer.sendCommand(brightness)
+            }
+        }
+        case 3: {
+            SportZalNisha_Dimmer.sendCommand(ON)
+        }
+        case 4: {
+            if (SportZalNisha_Dimmer.state instanceof DecimalType) {
+                var brightness = SportZalNisha_Dimmer.state as Number + 10
+                if(brightness > 99) brightness = 100
+                SportZalNisha_Dimmer.sendCommand(brightness)
+            }
+        }
+        case 7: {
+            SportZalNisha_Dimmer.sendCommand(OFF)
+        }
+        case 8: {
+            if (SportZalNisha_Dimmer.state instanceof DecimalType) {
+                var brightness = SportZalNisha_Dimmer.state as Number - 10
+                if(brightness < 1) brightness = 0
+                SportZalNisha_Dimmer.sendCommand(brightness)
+            }
+        }
+    }
+
+end

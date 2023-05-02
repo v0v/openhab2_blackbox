@@ -1,0 +1,34 @@
+sitemap light label="Lights" {
+    Frame label="SportZal" {
+        Switch item=ZWaveNode035ZME_05431SwitchSportZalMain_Dimmer
+        Slider item=ZWaveNode035ZME_05431SwitchSportZalMain_Dimmer label="SportZal Main [%d %%]"
+        Switch item=SportZalNisha_Dimmer
+        Slider item=SportZalNisha_Dimmer label="SportZal Nisha [%d %%]"
+        Switch item=SportZalBar_Dimmer
+        Slider item=SportZalBar_Dimmer label="SportZal Bar [%d %%]"
+    }
+
+    Frame label="4erdak" {
+        Switch item=ZW0024erdakMainZME_05431Switch_Dimmer
+        Slider item=ZW0024erdakMainZME_05431Switch_Dimmer label="4erdak Main [%d %%]"
+        Switch item=ZW0034erdakStairsZME_05431Switch_Dimmer
+        Slider item=ZW0034erdakStairsZME_05431Switch_Dimmer label="4erdak Stairs [%d %%]"
+    }
+
+    Frame label="4erdak Bulb I" {
+        Slider item=CHerdakBulb_I_Dimmer label="4erdak Bulb I [%d %%]"
+        Slider item=4erdakBulb_I_ColorTemperature label="4erdak Bulb I [%d %%]"
+        Colorpicker item=4erdakBulb_I_ColorControl icon="slider"
+    }
+
+    Frame label="4erdak Bulb II" {
+        Slider item=4erdakBulb_II_Dimmer label="4erdak Bulb II [%d %%]"
+        Slider item=4erdakBulb_II_ColorTemperature label="4erdak Bulb II [%d %%]"
+        Colorpicker item=4erdakBulb_II_ColorControl icon="slider"
+    }
+    
+        //Text label="Hof Stream"		icon="camera" {Video url="http://192.168.1.80:81/stream" encoding="mjpeg"}
+
+
+
+}
