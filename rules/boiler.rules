@@ -88,7 +88,7 @@ then
         var vbBoilerTemperature = (MySen2215BoilerTemp_Temperature.state as Number).floatValue
         logInfo("boiler.rules", "vbBoilerTemperature = " + vbBoilerTemperature)
         if ((vbBoilerTemperature < 38) && (vbBoilerTemperature > 22)) {
-            sendBroadcastNotification("Низкая температура бойлера!")
+            sendNotification("vbhome@mail.ru", "Низкая температура бойлера!")
             logInfo("boiler.rules", "Sending alert = Низкая температура бойлера!")
         }
     }
