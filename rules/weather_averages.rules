@@ -580,6 +580,31 @@ var MODE_HEATING = 1
         logInfo("weather_averages.rules", "!!!!!!!!!!!!!! HeatitBathRoom_SensorTemperature NOT DEFINED !!!!!!!!!!!!!!")
         vbSwitchZircNasos = 1
     }
+
+
+    if (vbUpdateCounterMSBathRoom.state==NULL) {vbUpdateCounterMSBathRoom.postUpdate(0)}
+    var UpdateCounterMSBathRoom = (vbUpdateCounterMSBathRoom.state as Number).floatValue
+    if (vbTempBathRoomFiltered.state==NULL) {vbTempBathRoomFiltered.postUpdate(MS_BathRoom.state)}
+    var TempBathRoomPrev = (vbTempBathRoomFiltered.state as Number).floatValue
+    if (MS_BathRoom.state instanceof Number) {
+        var TempBathRoom = (MS_BathRoom.state as Number).floatValue
+        if (TempBathRoom == TempBathRoomPrev) {
+            UpdateCounterMSBathRoom = UpdateCounterMSBathRoom+1
+            vbUpdateCounterMSBathRoom.postUpdate(UpdateCounterMSBathRoom)
+            logInfo("weather_averages.rules", "updating UpdateCounterMSBathRoom = " + UpdateCounterMSBathRoom)
+        } else {
+            vbUpdateCounterMSBathRoom.postUpdate(0)
+            logInfo("weather_averages.rules", "updating UpdateCounterMSBathRoom = 0")
+        }
+        logInfo("weather_averages.rules", "TempBathRoomPrev = " + TempBathRoomPrev)
+        if ((TempBathRoom > -77) && (TempBathRoom < 77) && (Math::abs(TempBathRoom - TempBathRoomPrev) < 10)){
+            logInfo("weather_averages.rules", "updating vbTempBathRoomFiltered = " + MS_BathRoom.state)
+            vbTempBathRoomFiltered.postUpdate(MS_BathRoom.state)  
+        }
+    }
+    if (UpdateCounterMSBathRoom > 666) {
+       sendNotification("vbhome@mail.ru", "vbTempBathRoomFiltered IS NOT UPDATING!!!")
+    }
     
     if (PAN06_Switch2.state  === NULL) {
         logInfo("weather_averages.rules", "!!!!!!!!!!!!!! PAN06_Switch2.state NOT DEFINED !!!!!!!!!!!!!!")
