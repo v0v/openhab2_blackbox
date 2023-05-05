@@ -319,6 +319,30 @@ var MODE_HEATING = 1
     }
 
 
+    if (vbUpdateCounter_MQTT_Temp_4erdak.state==NULL) {vbUpdateCounter_MQTT_Temp_4erdak.postUpdate(0)}
+    var UpdateCounter_MQTT_Temp_4erdak = (vbUpdateCounter_MQTT_Temp_4erdak.state as Number).floatValue
+    //if (vbTempBathRoomFiltered.state==NULL) {vbTempBathRoomFiltered.postUpdate(MS_BathRoom.state)}
+    var Temp_4erdakPrev = (MQTT_Temp_4erdak.state as Number).floatValue
+    if (MQTT_Temp_4erdak.state instanceof Number) {
+        var Temp_4erdak = (MQTT_Temp_4erdak.state as Number).floatValue
+        if (Temp_4erdak == Temp_4erdakPrev) {
+            UpdateCounter_MQTT_Temp_4erdak = UpdateCounter_MQTT_Temp_4erdak+1
+            vbUpdateCounter_MQTT_Temp_4erdak.postUpdate(UpdateCounter_MQTT_Temp_4erdak)
+            logInfo("weather_averages.rules", "updating UpdateCounter_MQTT_Temp_4erdak = " + UpdateCounter_MQTT_Temp_4erdak)
+        } else {
+            vbUpdateCounter_MQTT_Temp_4erdak.postUpdate(0)
+            logInfo("weather_averages.rules", "updating UpdateCounter_MQTT_Temp_4erdak = 0")
+        }
+        logInfo("weather_averages.rules", "Temp_4erdakPrev = " + Temp_4erdakPrev)
+        // if ((TempBathRoom > -77) && (TempBathRoom < 77) && (Math::abs(TempBathRoom - TempBathRoomPrev) < 10)){
+        //     logInfo("weather_averages.rules", "updating vbTempBathRoomFiltered = " + MQTT_Temp_4erdak.state)
+        //     vbTempBathRoomFiltered.postUpdate(MQTT_Temp_4erdak.state)  
+        // }
+    }
+    if (UpdateCounter_MQTT_Temp_4erdak > 666) {
+       sendNotification("vbhome@mail.ru", "MQTT_Temp_4erdak IS NOT UPDATING!!!")
+    }
+
     // ======================== SALON ===========================
     logInfo("weather_averages.rules", " ======================== SALON ===========================")
     var vbMS_SalonTemp = vbBathRoomUstavka

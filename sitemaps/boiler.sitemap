@@ -132,6 +132,11 @@ sitemap boiler label="Boiler" {
                 Chart item=MS_4erdak period=min refresh=30000
             }
         }
+        Text item=MQTT_Temp_4erdak  label="MQTT_Temp_4erdak [%.1f °C]" valuecolor=[>24="orange",>15="green",<=15="blue"]{
+            Frame { 
+                Chart item=MQTT_Temp_4erdak period=min refresh=30000
+            }
+        }
 
         Text item=vbMS_4erdakEMA_BIG label="vbMS_4erdakEMA_BIG [%.1f °C]"     
         
