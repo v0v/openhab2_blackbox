@@ -102,8 +102,8 @@ sitemap boiler label="Boiler" {
 
         Text item=MySen2215BoilerTemp_Temperature  label="Температура бойлера [%.1f °C]" valuecolor=[>65="red",>60="orange",>50="green",<=50="blue"]{
             Frame { 
-                Chart item=MySen2215BoilerTemp_Temperature period=min refresh=30000
-                Chart item=MySen2215BoilerTemp_Temperature period=4h refresh=3000
+                Chart item=vbTempBoilerFiltered period=min refresh=30000
+                Chart item=vbTempBoilerFiltered period=4h refresh=3000
             }
         }
         Text item=MySen2215BoilerTemp_LastUpdate label="Время обновления [%1$td/%1$tm %1$tH:%1$tM ]"

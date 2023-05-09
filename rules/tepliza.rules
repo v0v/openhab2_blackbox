@@ -49,17 +49,18 @@ if (TemperatureSensor_3V_Temperature.state instanceof Number) {
     
     var vbTeplizaRoomTempPrev = (vbTempTeplizaFiltered.state as Number).floatValue
     logInfo("tepliza.rules", "vbTeplizaRoomTempPrev = " + vbTeplizaRoomTempPrev)
-    if ((vbTeplizaRoomTemp > -77 && vbTeplizaRoomTemp < 77) && (Math::abs(vbTeplizaRoomTemp - vbTeplizaRoomTempPrev) < 10)){
+    if ((vbTeplizaRoomTemp > -44) && (vbTeplizaRoomTemp < 77) && (Math::abs(vbTeplizaRoomTemp - vbTeplizaRoomTempPrev) < 10)){
         //var vbTempTeplizaFiltered = TemperatureSensor_3V_Temperature
         logInfo("tepliza.rules", "updating vbTempTeplizaFiltered = " + TemperatureSensor_3V_Temperature.state)
         vbTempTeplizaFiltered.postUpdate(TemperatureSensor_3V_Temperature.state)
 
-        if  (vbTeplizaRoomTemp > 32) {
+        if  (((vbTeplizaRoomTemp > 32) && (vbTeplizaRoomTempPrev > 32) && (now.getHourOfDay <15 )) ||
+                ((vbTeplizaRoomTemp > 39) && (vbTeplizaRoomTempPrev > 39))){
             sendBroadcastNotification("Высокая температура в теплице!!!")
             logInfo("boiler.rules", "Sending alert = Высокая температура в теплице!!!")
         }
 
-        if  (vbTeplizaRoomTemp < 4) {
+        if  ((vbTeplizaRoomTemp < 4) && (vbTeplizaRoomTempPrev < 4)) {
             sendBroadcastNotification("Низкая температура в теплице!!!")
             logInfo("boiler.rules", "Sending alert = Низкая температура в теплице!!!")
         }

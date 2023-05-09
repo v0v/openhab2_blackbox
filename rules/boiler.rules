@@ -87,12 +87,41 @@ then
         logInfo("boiler.rules", "MySen2215BoilerTemp_Temperature = " + MySen2215BoilerTemp_Temperature.state)
         var vbBoilerTemperature = (MySen2215BoilerTemp_Temperature.state as Number).floatValue
         logInfo("boiler.rules", "vbBoilerTemperature = " + vbBoilerTemperature)
-        if ((vbBoilerTemperature < 38) && (vbBoilerTemperature > 22)) {
+        // if ((vbBoilerTemperature < 38) && (vbBoilerTemperature > 22)) {
+        //     sendNotification("vbhome@mail.ru", "Низкая температура бойлера!")
+        //     logInfo("boiler.rules", "Sending alert = Низкая температура бойлера!")
+        // }
+    }
+
+
+    if (vbUpdateCounterBoiler.state==NULL) {vbUpdateCounterBoiler.postUpdate(0)}
+    var UpdateCounterBoiler = (vbUpdateCounterBoiler.state as Number).floatValue
+    if (vbTempBoilerFiltered.state==NULL) {vbTempBoilerFiltered.postUpdate(MySen2215BoilerTemp_Temperature.state)}
+    var Temp_BoilerPrev = (vbTempBoilerFiltered.state as Number).floatValue
+    if (MySen2215BoilerTemp_Temperature.state instanceof Number) {
+        var Temp_Boiler = (MySen2215BoilerTemp_Temperature.state as Number).floatValue
+        if (Temp_Boiler == Temp_BoilerPrev) {
+            UpdateCounterBoiler = UpdateCounterBoiler+1
+            vbUpdateCounterBoiler.postUpdate(UpdateCounterBoiler)
+            logInfo("weather_averages.rules", "updating UpdateCounterBoiler = " + UpdateCounterBoiler)
+        } else {
+            vbUpdateCounterBoiler.postUpdate(0)
+            logInfo("weather_averages.rules", "updating UpdateCounterBoiler = 0")
+        }
+        logInfo("weather_averages.rules", "Temp_BoilerPrev = " + Temp_BoilerPrev)
+        if ((Temp_Boiler > -77) && (Temp_Boiler < 77) && (Math::abs(Temp_Boiler - Temp_BoilerPrev) < 10)){
+            logInfo("weather_averages.rules", "updating vbTempBoilerFiltered = " + MySen2215BoilerTemp_Temperature.state)
+            vbTempBoilerFiltered.postUpdate(MySen2215BoilerTemp_Temperature.state)  
+        }
+        if ((Temp_Boiler < 38) && (Temp_Boiler > 22) && (Temp_BoilerPrev < 38) && (Temp_BoilerPrev > 22)) {
             sendNotification("vbhome@mail.ru", "Низкая температура бойлера!")
             logInfo("boiler.rules", "Sending alert = Низкая температура бойлера!")
         }
-    }
 
+    }
+    if (UpdateCounterBoiler > 666) {
+       sendNotification("vbhome@mail.ru", "vbTempBoilerFiltered IS NOT UPDATING!!!")
+    }
 
 
 end
