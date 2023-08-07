@@ -14,7 +14,6 @@ then
         vbNasosGVSUstavka = vbNasosGVSUstavkaECO
     } 
 
-    OpenWeatherMap_Current_OutdoorTemperature
     // if (DarkSkyKasimovo_Current_OutdoorTemperature.state != NULL) {
     //     var Temp = (DarkSkyKasimovo_Current_OutdoorTemperature.state as Number).floatValue
     if (OpenWeatherMap_Current_OutdoorTemperature.state != NULL) {
