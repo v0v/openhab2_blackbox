@@ -14,9 +14,12 @@ then
         vbNasosGVSUstavka = vbNasosGVSUstavkaECO
     } 
 
-    if (DarkSkyKasimovo_Current_OutdoorTemperature.state != NULL) {
-        var Temp = (DarkSkyKasimovo_Current_OutdoorTemperature.state as Number).floatValue
-        if (Temp > 25) {
+    OpenWeatherMap_Current_OutdoorTemperature
+    // if (DarkSkyKasimovo_Current_OutdoorTemperature.state != NULL) {
+    //     var Temp = (DarkSkyKasimovo_Current_OutdoorTemperature.state as Number).floatValue
+    if (OpenWeatherMap_Current_OutdoorTemperature.state != NULL) {
+        var Temp = (OpenWeatherMap_Current_OutdoorTemperature.state as Number).floatValue
+            if (Temp > 25) {
             vbNasosGVSUstavka = vbNasosGVSUstavkaVERY_RED_HEAT
         } else if (Temp > 22) {
             vbNasosGVSUstavka = vbNasosGVSUstavkaRED_HEAT
@@ -113,13 +116,13 @@ then
             logInfo("weather_averages.rules", "updating vbTempBoilerFiltered = " + MySen2215BoilerTemp_Temperature.state)
             vbTempBoilerFiltered.postUpdate(MySen2215BoilerTemp_Temperature.state)  
         }
-        if ((Temp_Boiler < 38) && (Temp_Boiler > 22) && (Temp_BoilerPrev < 38) && (Temp_BoilerPrev > 22)) {
-            sendNotification("vbhome@mail.ru", "Низкая температура бойлера!")
+        if ((Temp_Boiler < 33) && (Temp_Boiler > 19) && (Temp_BoilerPrev < 33) && (Temp_BoilerPrev > 19)) {
+            sendNotification("vbhome@mail.ru", "Низкая температура бойлера " + Temp_Boiler + "!!!")
             logInfo("boiler.rules", "Sending alert = Низкая температура бойлера!")
         }
 
     }
-    if (UpdateCounterBoiler > 666) {
+    if (UpdateCounterBoiler > 66) {
        sendNotification("vbhome@mail.ru", "vbTempBoilerFiltered IS NOT UPDATING!!!")
     }
 
