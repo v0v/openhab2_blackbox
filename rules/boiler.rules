@@ -36,7 +36,8 @@ then
         var vbWaterPressure = (MySen220WaterPressure_Pressure.state as Number).floatValue
         logInfo("boiler.rules", "vbWaterPressure = " + vbWaterPressure)
         if  (vbWaterPressure < 0.15) {
-            //vbNasosGVSPressureDisable = 1
+            logInfo("boiler.rules", "!!!!!!!!!!!!!! DIASABLING NASOSGVS because of LOW PRESSURE !!!!!!!!!!!!!!")
+            vbNasosGVSPressureDisable = 1
         }
     }
 
